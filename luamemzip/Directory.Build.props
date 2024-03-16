@@ -1,0 +1,94 @@
+<Project>
+  <!-- https://github.com/Microsoft/MSBuildSdks/tree/main/src/CentralPackageVersions -->
+  <!-- https://github.com/japj/CppWithNuGetPackageReference -->
+  <!-- https://docs.microsoft.com/en-us/visualstudio/msbuild/customize-your-build?view=vs-2019 -->
+  <PropertyGroup>
+    <PackageId>luamemzip</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>gynt</Authors>
+    <Company>gynt</Company>
+    <TargetFramework>native</TargetFramework>
+    <PackageOutputPath>.</PackageOutputPath>
+    <Description>Manipulate zip files in memory from lua</Description>
+    <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+
+    <PackageProjectUrl>https://github.com/gynt/luamemzip/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/gynt/luamemzip.git</RepositoryUrl>
+
+    <IncludeBuildOutput>False</IncludeBuildOutput>
+    
+    <EnableCentralPackageVersions>true</EnableCentralPackageVersions>
+    <TargetFramework>native</TargetFramework>
+    <RestoreAdditionalProjectSources>
+      <!-- for lua -->
+      https://api.nuget.org/v3/index.json;     
+      <!-- for zip -->
+      https://nuget.pkg.github.com/gynt/index.json;   
+    </RestoreAdditionalProjectSources>
+    <_NuGetTargetFallbackMoniker>$(_NuGetTargetFallbackMoniker);native,Version=v0.0</_NuGetTargetFallbackMoniker>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- This package reference is here so that msbuild /t:pack works -->
+    <PackageReference Include="NuGet.Build.Tasks.Pack" Version="5.2.0" PrivateAssets="all" developmentDependency="true" />
+
+    <!-- lua is a dependency that should be forwarded upon those that use the nuget package -->
+    <PackageReference Include="lua" Version="5.4.6" PrivateAssets="none" ExcludeAssets="none" IncludeAssets="all" />
+    
+    <!-- These dependencies are developer dependencies (I am pretty sure developmentDependency=true doesn't do anything). They are not listed in the resulting .nuspec -->
+    <PackageReference Include="zip" Version="0.3.1" PrivateAssets="all" developmentDependency="true" />
+
+    <!-- This describes the content that is packed -->
+    <Content Include="..\Debug\luamemzip.dll">
+      <Pack>true</Pack>
+      <PackagePath>build\native\bin\Win32\v143\Debug</PackagePath>
+    </Content>  
+    <Content Include="..\Debug\luamemzip.lib">
+      <Pack>true</Pack>
+      <PackagePath>build\native\lib\Win32\v143\Debug</PackagePath>
+    </Content>
+    <Content Include="..\Debug\luamemzip.pdb">
+      <Pack>true</Pack>
+      <PackagePath>build\native\lib\Win32\v143\Debug</PackagePath>
+    </Content>
+
+    <Content Include="..\Release\luamemzip.dll">
+      <Pack>true</Pack>
+      <PackagePath>build\native\bin\Win32\v143\Release</PackagePath>
+    </Content>
+    <Content Include="..\Release\luamemzip.lib">
+      <Pack>true</Pack>
+      <PackagePath>build\native\lib\Win32\v143\Release</PackagePath>
+    </Content>
+  
+    <Content Include="luamemzip.h">
+      <Pack>true</Pack>
+      <PackagePath>build\native\include</PackagePath>
+    </Content>
+    <Content Include="luamemzip.hpp">
+      <Pack>true</Pack>
+      <PackagePath>build\native\include</PackagePath>
+    </Content>
+
+    <Content Include="luamemzip.targets">
+      <Pack>true</Pack>
+      <PackagePath>build\native</PackagePath>
+    </Content>
+    <Content Include="luamemzip-propertiesui.xml">
+      <Pack>true</Pack>
+      <PackagePath>build\native</PackagePath>
+    </Content>
+
+    <Content Include="..\README.md">
+      <Pack>true</Pack>
+      <PackagePath>build</PackagePath>
+    </Content>
+    <Content Include="..\README.md">
+      <Pack>true</Pack>
+      <PackagePath>build\native\doc</PackagePath>
+    </Content>
+
+  </ItemGroup>
+  
+
+</Project>
