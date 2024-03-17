@@ -7,6 +7,8 @@
 #include <zip.h>
 #include <corecrt_malloc.h>
 
+#include <filesystem>
+
 #define LUAMEMZIP_ZIP_STREAM_METATABLE_NAME "luamemzipstream"
 #define LUAMEMZIP_ZIP_FILE_METATABLE_NAME "luamemzip"
 #define LUAMEMZIP_ERROR_CLOSED_ZIP "invalid zip handle, cannot operate on a closed zip file"
@@ -230,10 +232,79 @@ int lua_zip_stream_close(lua_State* L) {
 	return 0;
 }
 
+int lua_zip_entry_exists(lua_State* L) { 
+	struct LuaZip* lz = lua_check_luazip(L, 1);
+	const char* entryname = luaL_checkstring(L, 2);
+	int status = zip_entry_open(lz->handle, entryname);
+
+	if (status == 0) {
+		lua_pushboolean(L, true);
+
+		zip_entry_close(lz->handle);
+
+		return 1;
+	}
+	else if (status == ZIP_ENOENT) {
+		lua_pushboolean(L, false);
+
+		return 1;
+	}
+
+	lua_pushnil(L);
+	lua_pushinteger(L, status);
+	lua_pushstring(L, zip_strerror(status));
+
+	return 3;
+}
+
+int lua_zip_list_entries(lua_State* L) {
+	struct LuaZip* lz = lua_check_luazip(L, 1);
+	const char* entryname = ".";
+
+	if (!lua_isnil(L, 2)) {
+		entryname = luaL_checkstring(L, 2);
+	}
+
+	lua_createtable(L, 0, 0);
+
+	std::string path = entryname;
+
+	int count = 1;
+
+	std::filesystem::path haystack = std::filesystem::path(path);
+
+	int i, n = zip_entries_total(lz->handle);
+	for (i = 0; i < n; ++i) {
+		zip_entry_openbyindex(lz->handle, i);
+		{
+			const char* name = zip_entry_name(lz->handle);
+			int isdir = zip_entry_isdir(lz->handle);
+
+			std::string finalName = name;
+			if (isdir) {
+				if (finalName[finalName.length()] != '/') {
+					finalName += '/';
+				}
+			}
+
+			lua_pushstring(L, finalName.c_str());
+			lua_seti(L, -2, count);
+
+			count++;
+		}
+		zip_entry_close(lz->handle);
+	}
+
+	// Return the table of entries
+	return 1;
+}
+
 const struct luaL_Reg lib[] = {
 	{"zip_stream_open", lua_zip_stream_open},
+	{"zip_entry_exists", lua_zip_entry_exists},
 	{"zip_stream_close", lua_zip_stream_close},
 	{"zip_stream_copy", lua_zip_stream_copy},
+	{"zip_list_entries", lua_zip_list_entries},
 	//{"zip_open", lua_zip_file_open},
 	//{"zip_close", lua_zip_file_close},
 	{"zip_entry_open", lua_zip_entry_open},
